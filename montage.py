@@ -43,7 +43,6 @@ class Montage:
             # 获取图像列表的色调表
             for i, image_file in enumerate(self.image_paths):
                 image = safe_imread(image_file)
-                assert image is not None, f"Failed to load image: {image_file}"
                 image = cv.resize(image, dsize=self.block_size, interpolation=cv.INTER_CUBIC)
                 self.colormaps[i] = self.calculate_dominant_color(image)
                 if not self.lazy_load:
