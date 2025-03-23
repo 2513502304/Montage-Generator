@@ -1,0 +1,6 @@
+rich==13.7.0
+numpy==1.26.4
+opencv-python==4.8.1.78
+skimage==0.21.0
+joblib==1.2.0
+PyAutoGUI==0.9.54
