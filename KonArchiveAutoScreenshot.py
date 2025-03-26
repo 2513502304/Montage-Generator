@@ -2,7 +2,7 @@
 Author: 未来可欺 2513502304@qq.com
 Date: 2025-03-22 01:10:54
 LastEditors: 未来可欺 2513502304@qq.com
-LastEditTime: 2025-03-23 10:54:27
+LastEditTime: 2025-03-26 19:57:33
 Description: KonArchive 自动截屏脚本
 """
 
@@ -10,20 +10,32 @@ import pyautogui
 import subprocess
 import os
 
+KonArchive = "https://archive.org/details/k-on-k-on-movie-illustration-archives-2009-2012"
+
 # KonArchive 可执行文件路径
 exec_file = r"D:/KonArchive/KonArchive.exe"
 # 保存截屏的文件夹路径
 screenshot_dir = r"./Data/K-ON!"
+# 程序运行时调试文件夹路径
+debug_dir = r"./Data/debug"
 
 
-def auto_screenshot(exec_file: str, screenshot_dir: str) -> None:
+def auto_screenshot(exec_file: str, screenshot_dir: str, debug_dir: str) -> None:
     """
     KonArchive 自动截屏
 
     Args:
         exec_file (str): KonArchive 可执行文件路径
         screenshot_dir (str): 保存截屏的文件夹路径
+        debug_dir (str): 程序运行时调试文件夹路径
     """
+    # 若保存截屏的文件夹不存在，则自动创建
+    if not os.path.exists(screenshot_dir):
+        os.makedirs(screenshot_dir)
+    # 若调试文件夹不存在，则自动创建
+    if not os.path.exists(debug_dir):
+        os.makedirs(debug_dir)
+
     # 禁用故障保护
     pyautogui.FAILSAFE = False
 
@@ -112,4 +124,4 @@ def auto_screenshot(exec_file: str, screenshot_dir: str) -> None:
 
 
 if __name__ == '__main__':
-    auto_screenshot(exec_file=exec_file, screenshot_dir=screenshot_dir)
+    auto_screenshot(exec_file=exec_file, screenshot_dir=screenshot_dir, debug_dir=debug_dir)
