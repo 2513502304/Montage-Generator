@@ -2,13 +2,12 @@
 Author: 未来可欺 2513502304@qq.com
 Date: 2025-03-22 12:31:06
 LastEditors: 未来可欺 2513502304@qq.com
-LastEditTime: 2025-03-23 19:55:54
+LastEditTime: 2025-03-26 20:00:22
 Description: 应用于视频或图像的蒙太奇生成工具
 """
 
 from montage import Montage, safe_imread, safe_imwrite
 import settings
-import cv2 as cv
 import joblib
 import os
 
@@ -25,10 +24,10 @@ def main():
     match settings.mode.lower():
         case 'image':
             image = safe_imread(settings.image_input_path)
-            montage_image = montage.generate_image(image=image, scale=settings.scale, fit_size=settings.fit_size)
+            montage_image = montage.generate_image(image=image, scale=settings.scale, fit_size=settings.fit_size, unique=settings.unique)
             safe_imwrite(settings.image_output_path, montage_image)
         case 'video':
-            montage.generate_video(video_input_path=settings.video_input_path, video_output_path=settings.video_output_path, scale=settings.scale, fit_size=settings.fit_size)
+            montage.generate_video(video_input_path=settings.video_input_path, video_output_path=settings.video_output_path, scale=settings.scale, fit_size=settings.fit_size, unique=settings.unique)
         case _:
             raise NotImplementedError()
         
