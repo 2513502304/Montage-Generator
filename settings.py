@@ -18,6 +18,9 @@ scale: int | float = 3.0
 # 是否在蒙太奇图像缩放过后，进一步将图像大小调整，以自适应匹配 block 区域图像的比例，避免在蒙太奇图像最右方与最下方的 block 区域图像出现截断所导致的显示不全现象
 fit_size: bool = True
 
+# 是否限制每个 block 区域图像仅出现一次
+unique: bool = False
+
 # 蒙太奇图像输入路径
 image_input_path: str = './Data/input/Yui-Azusa.jpg'
 
