@@ -5,7 +5,7 @@ import settings
 import os
 
 
-def show_color_metric_difference(
+def color_metric_difference(
     image: np.ndarray,
     save_dir: str,
     mode: Literal['bgr', 'lab'] = 'bgr',
@@ -13,7 +13,7 @@ def show_color_metric_difference(
     func_kwargs: dict = {},
 ) -> None:
     """
-    评估不同颜色差异计算方法的显示效果，并将其写入到文件名为函数名 + 函数参数的图像文件中
+    采用不同颜色差异计算方法对输入图像进行蒙太奇操作，并将其转换后的蒙太奇图像写入到文件名为函数名 + 函数参数的图像文件中
     
     Args:
         image (np.ndarray): 输入图像
@@ -36,6 +36,23 @@ def show_color_metric_difference(
     safe_imwrite(os.path.join(save_dir, filename), montage_image)
 
 
+def dominant_color_difference(
+    reference: np.ndarray,
+    comparison: np.ndarray,
+) -> np.ndarray:
+    """
+    评估不同颜色差异计算方法的显示效果，对两张图像主色调采用欧几里得距离
+
+    Args:
+        reference (np.ndarray): 参考图像
+        load_dir (str): 比较图像
+    
+    Returns:
+        np.ndarray: 两张图像主色调的欧几里得距离
+    """
+    return deltaE_euclidean(Montage.calculate_dominant_color(reference), Montage.calculate_dominant_color(comparison))
+
+
 if __name__ == '__main__':
     # 输入图像
     image = safe_imread(settings.image_input_path)
@@ -46,28 +63,35 @@ if __name__ == '__main__':
         os.makedirs(metric_path)
 
     # manhattan
-    show_color_metric_difference(image, save_dir=metric_path, mode='bgr', func=deltaE_manhattan, func_kwargs={})
+    color_metric_difference(image, save_dir=metric_path, mode='bgr', func=deltaE_manhattan, func_kwargs={})
 
     # euclidean
-    show_color_metric_difference(image, save_dir=metric_path, mode='bgr', func=deltaE_euclidean, func_kwargs={})
+    color_metric_difference(image, save_dir=metric_path, mode='bgr', func=deltaE_euclidean, func_kwargs={})
 
     # deltaE_approximation_rgb
-    show_color_metric_difference(image, save_dir=metric_path, mode='bgr', func=deltaE_approximation_bgr, func_kwargs={})
+    color_metric_difference(image, save_dir=metric_path, mode='bgr', func=deltaE_approximation_bgr, func_kwargs={})
 
     # deltaE_cie76
-    show_color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_cie76, func_kwargs={})
+    color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_cie76, func_kwargs={})
 
     # deltaE_ciede94 with kL=1
-    show_color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_ciede94, func_kwargs={'kL': 1})
+    color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_ciede94, func_kwargs={'kL': 1})
     # deltaE_ciede94 with kL=2
-    show_color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_ciede94, func_kwargs={'kL': 2})
+    color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_ciede94, func_kwargs={'kL': 2})
 
     # deltaE_cie2000 with kL=1
-    show_color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_ciede2000, func_kwargs={'kL': 1})
+    color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_ciede2000, func_kwargs={'kL': 1})
     # deltaE_cie2000 with kL=2
-    show_color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_ciede2000, func_kwargs={'kL': 2})
+    color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_ciede2000, func_kwargs={'kL': 2})
 
     # deltaE_cmc with kL=1
-    show_color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_cmc, func_kwargs={'kL': 1})
+    color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_cmc, func_kwargs={'kL': 1})
     # deltaE_cmc with kL=2
-    show_color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_cmc, func_kwargs={'kL': 2})
+    color_metric_difference(image, save_dir=metric_path, mode='lab', func=deltaE_cmc, func_kwargs={'kL': 2})
+
+    # 评估不同颜色差异计算方法的显示效果
+    image_paths = [os.path.join(metric_path, name) for name in os.listdir(metric_path)]
+    for image_file in image_paths:
+        reference = image
+        comparison = safe_imread(image_file)
+        print(f'{image_file}: {dominant_color_difference(reference=reference, comparison=comparison)}')
