@@ -172,3 +172,13 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# run main.py
+Data/output
+
+# run KonArchiveAutoScreenshot.py
+Data/K-ON!
+Data/debug
+
+# run demo.py
+Data/metric
