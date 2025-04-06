@@ -8,6 +8,7 @@ Description: KonArchive 自动截屏脚本
 
 import pyautogui
 import subprocess
+import time
 import os
 
 KonArchive = "https://archive.org/details/k-on-k-on-movie-illustration-archives-2009-2012"
@@ -18,9 +19,11 @@ exec_file = r"D:/KonArchive/KonArchive.exe"
 screenshot_dir = r"./Data/K-ON!"
 # 程序运行时调试文件夹路径
 debug_dir = r"./Data/debug"
+# 等待一定时间，以便由于程序运行卡顿所导致的截屏不完全现象
+delay = 0.2
 
 
-def auto_screenshot(exec_file: str, screenshot_dir: str, debug_dir: str) -> None:
+def auto_screenshot(exec_file: str, screenshot_dir: str, debug_dir: str, delay: int) -> None:
     """
     KonArchive 自动截屏
 
@@ -113,7 +116,8 @@ def auto_screenshot(exec_file: str, screenshot_dir: str, debug_dir: str) -> None
 
             # 点击 ok 选项位置
             pyautogui.click(*ok_pos)
-
+        # 等待一定时间，以便由于程序运行卡顿所导致的截屏不完全现象
+        time.sleep(delay)
         # 移动鼠标到屏幕右下角（屏幕外）
         pyautogui.moveTo(screen_width - 1, screen_height - 1)
         # 截屏当前图像
@@ -124,4 +128,4 @@ def auto_screenshot(exec_file: str, screenshot_dir: str, debug_dir: str) -> None
 
 
 if __name__ == '__main__':
-    auto_screenshot(exec_file=exec_file, screenshot_dir=screenshot_dir, debug_dir=debug_dir)
+    auto_screenshot(exec_file=exec_file, screenshot_dir=screenshot_dir, debug_dir=debug_dir, delay=delay)
