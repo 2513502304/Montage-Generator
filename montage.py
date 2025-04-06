@@ -1,6 +1,7 @@
 from utils import deltaE_cie76, deltaE_ciede94, deltaE_ciede2000, deltaE_cmc, deltaE_manhattan, deltaE_euclidean, deltaE_approximation_bgr, deltaE_approximation_rgb, safe_imread, safe_imwrite
 from rich.progress import Progress, track
 from typing import Callable, Literal
+from PIL import Image
 import numpy as np
 import cv2 as cv
 import os
@@ -13,6 +14,7 @@ class Montage:
         image_dir: str,
         block_height: int,
         block_width: int,
+        fix_ratio: bool = True,
         lazy_load: bool = True,
         mode: Literal['bgr', 'lab'] = 'bgr',
         func: Callable[..., np.ndarray] = deltaE_euclidean,
@@ -25,6 +27,7 @@ class Montage:
             image_dir (str): 存储作为 block 区域图像的文件夹路径
             block_height (int): block 区域图像的高
             block_width (int): block 区域图像的宽
+            fix_ratio (bool, optional): 在作为 block 区域图像的文件中，是否仅保留原图比例与 block_height / block_width 比例一致的 block 区域图像。若为 True，则会应用满足与 block_height / block_width 比例一致的 block 区域图像，忽略其他比例的图像；若为 False，则会应用所有的 block 区域图像. Defaults to True.
             lazy_load (bool, optional): 是否懒加载 block 区域图像，若为 False，则一次性缓存所有的 block 区域图像至内存中，该设置可显著加快程序运行速度，但不适用于 block 区域图像过多的场景。强烈建议图像数量不超过 1w 张以上时均设置为 False. Defaults to True.
             mode (Literal['bgr', 'lab'], optional): 衡量图像颜色差异的颜色空间，必须与 func 计算所使用的颜色空间对应，可选. Defaults to 'bgr'
             func (Callable, optional): 衡量颜色差异的可调用对象，该函数接受的第一个参数为参考颜色，第二个参数为比较颜色，函数签名请阅览 skimage.color 中提供的 deltaE_cie76, deltaE_ciede94, deltaE_ciede2000, deltaE_cmc 函数。可选. Defaults to deltaE_euclidean
@@ -42,6 +45,23 @@ class Montage:
         # block 区域图像的高宽
         self.block_height, self.block_width = block_height, block_width
         self.block_size = (self.block_width, self.block_height)
+        # 是否仅保留原图比例与 block_height / block_width 比例一致的 block 区域图像
+        self.fix_ratio = fix_ratio
+        if self.fix_ratio:
+            # 期望比例
+            expect_ratio = self.block_width / self.block_height
+            # 当前索引
+            i = 0
+            # 遍历 block 区域图像的文件路径列表，将不符合期望比例的图像从列表中删除
+            while i < len(self.image_paths):
+                # 实际比例
+                real_width, real_height = self.get_image_size(self.image_paths[i])
+                real_ratio = real_width / real_height
+                # 若实际比例与期望比例不一致，则忽略该图像
+                if not np.allclose(real_ratio, expect_ratio):
+                    self.image_paths.pop(i) # 删除当前元素，下一轮待处理的元素索引不变
+                else:
+                    i += 1  # 仅当当前元素未被删除时，才增加索引
         # 作为 block 区域图像的色调表，shape=(-1, 3)
         self.colormaps = np.empty((len(self.image_paths), 3), dtype=np.uint8)
         # 是否懒加载 block 区域图像
@@ -77,8 +97,24 @@ class Montage:
             case _:
                 raise NotImplementedError()
 
+ 
+    @staticmethod
+    def get_image_size(image_path: str, ) -> tuple[int, int]:
+        """
+        懒加载图像并返回其图像宽高  
+        该方法并不直接读取图像数据，而是从图像文件中获取关于图像的宽高信息
+        
+        Args:
+            image_path (str): 图像路径
+
+        Returns:
+            tuple[int, int]: 图像宽高
+        """
+        return Image.open(image_path).size
+
+
+    @staticmethod
     def calculate_dominant_color(
-        self,
         image: np.ndarray,
     ) -> np.ndarray:
         """
@@ -131,7 +167,7 @@ class Montage:
         # 每个 block 区域图像仅出现一次
         if unique:
             # 所需要的 block 区域图像个数
-            block_count = np.ceil(new_height / self.block_height) * np.ceil(new_width / self.block_width)
+            block_count = int(np.ceil(new_height / self.block_height) * np.ceil(new_width / self.block_width))
             # 实际的 block 区域图像个数
             real_count = len(self.image_paths)
             assert block_count <= real_count, f"需要 {block_count} 个 block 区域图像，但 {self.image_dir} 只提供了 {real_count} 个 block 区域图像"
